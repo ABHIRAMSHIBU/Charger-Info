@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Charger Info</string>
+    <string name="permissionError">"Permission Denied!"</string>
+    <string name="detailsError">"Required files were not found in your device or permission to access those files were dennied"</string>
+</resources>
