@@ -1,18 +1,23 @@
 package com.example.abhiram.myapplication;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
     Handler h = new Handler();
-
+    boolean permissionFlag=false;
+    File rootDataDir = MainActivity.this.getDataDir();
+    String rootDir=rootDataDir.toString();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,13 +30,31 @@ public class MainActivity extends AppCompatActivity {
         TextView display = (TextView) findViewById(R.id.display);
         TextView details = (TextView) findViewById(R.id.details);
         h.postDelayed(r, 1000);
+        FileReader reader,reader1;
+        BufferedReader bufferedReader, bufferedReader1;
         try {
-
-
-            FileReader reader = new FileReader("/sys/class/power_supply/usb/type");  //Opening file
-            BufferedReader bufferedReader = new BufferedReader(reader);                        //Buffer class to read and buffer data
-            FileReader reader1 = new FileReader("/sys/class/power_supply/usb/uevent");
-            BufferedReader bufferedReader1 = new BufferedReader(reader1);
+            if(!permissionFlag) {
+                reader = new FileReader("/sys/class/power_supply/usb/type");  //Opening file
+                bufferedReader = new BufferedReader(reader);                        //Buffer class to read and buffer data
+                reader1 = new FileReader("/sys/class/power_supply/usb/uevent");
+                bufferedReader1 = new BufferedReader(reader1);
+            }
+            else{
+                String command="cp /sys/class/power_supply/usb/uevent /sys/class/power_supply/usb/type " + rootDir.trim();
+                //Process SU = Runtime.getRuntime().exec(command);
+                Process suProcess = Runtime.getRuntime().exec("su");
+                DataOutputStream os = new DataOutputStream(suProcess.getOutputStream());
+                os.writeBytes(command + "\n");
+                os.flush();
+                os.writeBytes("exit\n");
+                os.flush();
+                String Fname=rootDir.trim() + "/type";
+                reader = new FileReader(Fname);  //Opening file
+                bufferedReader = new BufferedReader(reader);                        //Buffer class to read and buffer data
+                Fname=rootDir.trim() + "/uevent";
+                reader1 = new FileReader(Fname);
+                bufferedReader1 = new BufferedReader(reader1);
+            }
             String line, eqvalent="";
             while ((line = bufferedReader.readLine()) != null) {
                 eqvalent = eqvalent + line;
@@ -71,4 +94,5 @@ public class MainActivity extends AppCompatActivity {
             check();
         }
     };
+
 }
